@@ -1,38 +1,28 @@
 package modelo;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-public abstract class Producto implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Producto {
+    private int id;
+    private String nombre;
+    private String categoria;
+    private double precioBase;
     
-    // Usamos 'protected' para que las clases hijas tengan acceso
-    protected int id;
-    protected String nombre;
-    protected String categoria;
-    protected double precioBase;
-    protected List<String> ingredientes;
+    private Map<Ingrediente, Integer> recetaBase;
 
     public Producto(int id, String nombre, String categoria, double precioBase) {
-        this.id = id;
-        this.nombre = nombre;
-        this.categoria = categoria;
-        this.precioBase = precioBase;
-        this.ingredientes = new ArrayList<>();
+        this.id = id; this.nombre = nombre; this.categoria = categoria; this.precioBase = precioBase;
+        this.recetaBase = new HashMap<>();
     }
 
-    // Método común para todas las comidas
-    public void agregarIngrediente(String ingrediente) {
-        this.ingredientes.add(ingrediente);
+    public void agregarIngredienteAReceta(Ingrediente ing, int cantidad) {
+        this.recetaBase.put(ing, cantidad);
     }
 
-    // MÉTODO ABSTRACTO: Obliga a cada comida a definir sus detalles
-    public abstract String obtenerDetallesPreparacion();
-
-    // Getters comunes
+    // Getters
     public int getId() { return id; }
     public String getNombre() { return nombre; }
     public String getCategoria() { return categoria; }
     public double getPrecioBase() { return precioBase; }
-    public List<String> getIngredientes() { return ingredientes; }
+    public Map<Ingrediente, Integer> getRecetaBase() { return recetaBase; }
 }

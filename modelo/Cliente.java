@@ -1,17 +1,21 @@
 package modelo;
 import java.io.Serializable;
 
-public class Cliente implements Serializable {
+public abstract class Cliente implements Serializable {
     private static final long serialVersionUID = 1L;
-    private int id;
-    private String nombre;
-    private String telefono;
+    protected int id;
+    protected String telefono;
+    protected String correo; 
 
-    public Cliente(int id, String nombre, String telefono) {
-        this.id = id; this.nombre = nombre; this.telefono = telefono;
+    public Cliente(int id, String telefono, String correo) {
+        this.id = id; this.telefono = telefono; this.correo = correo;
     }
 
+    public abstract String obtenerDatosFacturacion();
+
+    // Getters y Setters necesarios
     public int getId() { return id; }
-    public String getNombre() { return nombre; }
+    public void setId(int id) { this.id = id; } // <-- Vital para que MySQL asigne el ID
     public String getTelefono() { return telefono; }
+    public String getCorreo() { return correo; }
 }
