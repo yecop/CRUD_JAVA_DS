@@ -1,5 +1,6 @@
 package modelo;
 
+// Representa a un cliente empresarial identificado por su NIT.
 public class Empresa extends Cliente {
     private String nit;
     private String razonSocial;

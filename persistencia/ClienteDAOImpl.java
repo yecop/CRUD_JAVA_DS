@@ -6,6 +6,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+// Implementacion JDBC del CRUD de clientes y de la conversion entre subtipos.
 public class ClienteDAOImpl implements IClienteDAO {
     private Connection conexion;
 
@@ -15,9 +16,10 @@ public class ClienteDAOImpl implements IClienteDAO {
 
     @Override
     public boolean insertar(Cliente cliente) {
+        // PersonaNatural y Empresa comparten columnas, pero guardan distintos identificadores.
         String sql = "INSERT INTO clientes (tipo, telefono, correo, identificacion, nombre_razon) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
+            // Cliente es abstracto; el tipo concreto determina que dato identifica al cliente.
             if (cliente instanceof PersonaNatural) {
                 ps.setString(1, "PERSONA");
                 ps.setString(4, ((PersonaNatural) cliente).getCedula());
@@ -44,12 +46,14 @@ public class ClienteDAOImpl implements IClienteDAO {
 
     @Override
     public Cliente buscarPorIdentificacion(String identificacion) {
+        // La identificacion permite encontrar al cliente durante una venta en el POS.
         String sql = "SELECT * FROM clientes WHERE identificacion = ?";
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
             ps.setString(1, identificacion);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     String tipo = rs.getString("tipo");
+                    // Se reconstruye la subclase correcta para conservar el comportamiento del modelo.
                     if (tipo.equals("PERSONA")) {
                         return new PersonaNatural(rs.getInt("id"), rs.getString("telefono"), 
                                 rs.getString("correo"), rs.getString("identificacion"), rs.getString("nombre_razon"));
@@ -64,6 +68,7 @@ public class ClienteDAOImpl implements IClienteDAO {
     }
     @Override
     public List<Cliente> listar() {
+        // El tipo almacenado decide que subclase se agrega a la lista resultante.
         List<Cliente> lista = new ArrayList<>();
         String sql = "SELECT * FROM clientes";
         try (Statement st = conexion.createStatement(); ResultSet rs = st.executeQuery(sql)) {
@@ -107,6 +112,7 @@ public class ClienteDAOImpl implements IClienteDAO {
 
     @Override
     public boolean eliminar(int id) {
+        // Si existen ventas relacionadas, las restricciones de la base pueden impedir el borrado.
         String sql = "DELETE FROM clientes WHERE id=?";
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
             ps.setInt(1, id);

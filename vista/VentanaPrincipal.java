@@ -18,6 +18,7 @@ import javax.swing.table.TableRowSorter;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.DocumentEvent;
 
+// Ventana principal que agrupa todos los modulos funcionales mediante pestañas.
 public class VentanaPrincipal extends JFrame {
     
     private SistemaControlador controlador;
@@ -32,7 +33,7 @@ public class VentanaPrincipal extends JFrame {
     // --- Componentes Inventario (Ingredientes) ---
     private JTextField txtNombreIng, txtStockIng, txtPrecioExtraIng;
 
-    // --- Componentes Productos ---
+    // Controles del catalogo y estructuras temporales para construir recetas.
     private JTextField txtNombreProd, txtPrecioProd;
     private JComboBox<String> cmbCategoria;
     private JComboBox<String> cmbIngredientesBD;
@@ -55,6 +56,7 @@ public class VentanaPrincipal extends JFrame {
     private Map<Integer, Integer> ordenTemporal = new HashMap<>();
 
     public VentanaPrincipal() {
+        // La vista solo coordina controles y delega las reglas al controlador.
         this.controlador = new SistemaControlador(); 
         
         setTitle("ERP Comidas Rápidas - 100% CRUD & POS");
@@ -62,6 +64,7 @@ public class VentanaPrincipal extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
+        // Cada pestaña representa un modulo independiente de la aplicacion.
         JTabbedPane pestañas = new JTabbedPane();
         pestañas.addTab("🍅 1. Inventario (CRUD)", crearPanelIngredientes());
         pestañas.addTab("🍔 2. Catálogo y Recetas (CRUD)", crearPanelProductos());
@@ -77,6 +80,7 @@ public class VentanaPrincipal extends JFrame {
     // =========================================================================
 
     private JPanel crearPanelIngredientes() {
+        // Construye el formulario CRUD y sincroniza sus acciones con el inventario.
         JPanel panel = new JPanel(new BorderLayout());
         JPanel pnlForm = new JPanel(new FlowLayout(FlowLayout.LEFT));
         
@@ -98,66 +102,11 @@ public class VentanaPrincipal extends JFrame {
         JTable tabla = new JTable(modeloIngredientes);
         actualizarTablaIngredientes();
 
-        // Cargar datos al seleccionar en la tabla
-        tabla.getSelectionModel().addListSelectionListener(e -> {
-            int fila = tabla.getSelectedRow();
-            if (fila >= 0 && !e.getValueIsAdjusting()) {
-                txtNombreIng.setText(tabla.getValueAt(fila, 1).toString());
-                txtStockIng.setText(tabla.getValueAt(fila, 2).toString());
-                txtPrecioExtraIng.setText(tabla.getValueAt(fila, 3).toString().replace("$", ""));
-            }
-        });
-
-        btnAgregarIng.addActionListener(e -> {
-            try {
-                if (txtNombreIng.getText().trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "El nombre del ingrediente no puede estar vacío.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-
-                controlador.registrarIngrediente(
-                    txtNombreIng.getText(),
-                    Integer.parseInt(txtStockIng.getText()),
-                    Double.parseDouble(txtPrecioExtraIng.getText())
-                );
-                
-                actualizarTablaIngredientes();
-                actualizarComboIngredientes(); 
-                limpiarCamposIngredientes();
-                JOptionPane.showMessageDialog(this, "Ingrediente guardado exitosamente.");
-                
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Por favor ingrese números válidos para Stock y Precio.", "Error de formato", JOptionPane.ERROR_MESSAGE);
-            } catch (Exception ex) {
-                // Aquí atrapamos el error de duplicado que lanza el controlador y lo mostramos
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Atención", JOptionPane.WARNING_MESSAGE);
-            }
-        });
-
-        btnActualizarIng.addActionListener(e -> {
-            int fila = tabla.getSelectedRow();
-            if (fila >= 0) {
-                try {
-                    int id = (int) tabla.getValueAt(fila, 0);
-                    controlador.actualizarIngrediente(id, txtNombreIng.getText(), Integer.parseInt(txtStockIng.getText()), Double.parseDouble(txtPrecioExtraIng.getText()));
-                    actualizarTablaIngredientes();
-                    actualizarComboIngredientes();
-                    limpiarCamposIngredientes();
-                    tabla.clearSelection();
-                } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Error en los datos."); }
-            } else { JOptionPane.showMessageDialog(this, "Seleccione un ingrediente para actualizar."); }
-        });
-
-        btnEliminarIng.addActionListener(e -> {
-            int fila = tabla.getSelectedRow();
-            if (fila >= 0) {
-                int id = (int) tabla.getValueAt(fila, 0);
-                controlador.eliminarIngrediente(id);
-                actualizarTablaIngredientes();
-                actualizarComboIngredientes();
-                limpiarCamposIngredientes();
-            }
-        });
+        // Cada evento se delega a un metodo para mantener corto el constructor del panel.
+        configurarSeleccionIngrediente(tabla);
+        btnAgregarIng.addActionListener(e -> agregarIngrediente());
+        btnActualizarIng.addActionListener(e -> actualizarIngrediente(tabla));
+        btnEliminarIng.addActionListener(e -> eliminarIngrediente(tabla));
 
         panel.add(pnlForm, BorderLayout.NORTH);
         JPanel pnlCentro = new JPanel(new BorderLayout());
@@ -167,11 +116,79 @@ public class VentanaPrincipal extends JFrame {
         return panel;
     }
 
+    private void configurarSeleccionIngrediente(JTable tabla) {
+        // Al seleccionar una fila, sus datos pasan al formulario para editarla.
+        tabla.getSelectionModel().addListSelectionListener(e -> {
+            int fila = tabla.getSelectedRow();
+            if (fila >= 0 && !e.getValueIsAdjusting()) {
+                txtNombreIng.setText(tabla.getValueAt(fila, 1).toString());
+                txtStockIng.setText(tabla.getValueAt(fila, 2).toString());
+                txtPrecioExtraIng.setText(tabla.getValueAt(fila, 3).toString().replace("$", ""));
+            }
+        });
+    }
+
+    private void agregarIngrediente() {
+        try {
+            // Se valida el formato en la vista y la regla de duplicados en el controlador.
+            if (txtNombreIng.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "El nombre del ingrediente no puede estar vacío.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            controlador.registrarIngrediente(
+                txtNombreIng.getText(),
+                Integer.parseInt(txtStockIng.getText()),
+                Double.parseDouble(txtPrecioExtraIng.getText())
+            );
+
+            actualizarTablaIngredientes();
+            actualizarComboIngredientes();
+            limpiarCamposIngredientes();
+            JOptionPane.showMessageDialog(this, "Ingrediente guardado exitosamente.");
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Por favor ingrese números válidos para Stock y Precio.", "Error de formato", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            // Aqui se muestra, por ejemplo, el error de ingrediente duplicado.
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Atención", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    private void actualizarIngrediente(JTable tabla) {
+        int fila = tabla.getSelectedRow();
+        if (fila >= 0) {
+            try {
+                int id = (int) tabla.getValueAt(fila, 0);
+                controlador.actualizarIngrediente(id, txtNombreIng.getText(), Integer.parseInt(txtStockIng.getText()), Double.parseDouble(txtPrecioExtraIng.getText()));
+                actualizarTablaIngredientes();
+                actualizarComboIngredientes();
+                limpiarCamposIngredientes();
+                tabla.clearSelection();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error en los datos.");
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Seleccione un ingrediente para actualizar.");
+        }
+    }
+
+    private void eliminarIngrediente(JTable tabla) {
+        int fila = tabla.getSelectedRow();
+        if (fila >= 0) {
+            int id = (int) tabla.getValueAt(fila, 0);
+            controlador.eliminarIngrediente(id);
+            actualizarTablaIngredientes();
+            actualizarComboIngredientes();
+            limpiarCamposIngredientes();
+        }
+    }
+
     private void limpiarCamposIngredientes() {
         txtNombreIng.setText(""); txtStockIng.setText(""); txtPrecioExtraIng.setText("");
     }
 
     private void actualizarTablaIngredientes() {
+        // Se limpia la tabla antes de cargar la consulta mas reciente.
         modeloIngredientes.setRowCount(0);
         for (Ingrediente i : controlador.obtenerIngredientes()) {
             modeloIngredientes.addRow(new Object[]{i.getId(), i.getNombre(), i.getStock(), "$" + i.getPrecioExtra()});
@@ -284,7 +301,7 @@ private JPanel crearPanelProductos() {
             }
         });
 
-        // Eventos de Receta (Iguales a la versión anterior)
+        // La receta temporal permite preparar los ingredientes antes de enviarlos al controlador.
         btnAddReceta.addActionListener(e -> {
             if (cmbIngredientesBD.getSelectedItem() == null) return;
             String seleccion = (String) cmbIngredientesBD.getSelectedItem();
@@ -292,6 +309,7 @@ private JPanel crearPanelProductos() {
             String nombreIng = seleccion.split(" - ")[1];
             int cantidad = (int) spnCantidadIngrediente.getValue();
 
+            // Si se agrega el mismo ingrediente otra vez, se acumula su cantidad.
             recetaTemporal.put(idIngrediente, recetaTemporal.getOrDefault(idIngrediente, 0) + cantidad);
             nombresIngredientesTemporal.put(idIngrediente, nombreIng); 
             refrescarTablaRecetaTemporal();
@@ -305,6 +323,7 @@ private JPanel crearPanelProductos() {
 
         btnGuardarProducto.addActionListener(e -> {
             try {
+                // La receta se exige antes de enviar el producto al controlador.
                 if (recetaTemporal.isEmpty()) {
                     JOptionPane.showMessageDialog(this, "La receta debe tener ingredientes.");
                     return;
@@ -391,6 +410,7 @@ private JPanel crearPanelProductos() {
     // =========================================================================
 
     private JPanel crearPanelClientes() {
+        // Construye el CRUD de personas naturales y empresas usando el mismo formulario.
         JPanel panel = new JPanel(new BorderLayout());
         
         JPanel pnlForm = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -503,6 +523,7 @@ private JPanel crearPanelProductos() {
     // (Este código es el mismo del POS que funcionaba perfecto en la versión anterior)
 
     private JPanel crearPanelFacturacion() {
+        // El POS prepara una orden, permite modificarla y finalmente la procesa.
         JPanel panel = new JPanel(new BorderLayout());
         
         JPanel pnlCabecera = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -514,6 +535,7 @@ private JPanel crearPanelProductos() {
         lblNombreCliente.setForeground(Color.BLUE);
 
         btnBuscarCliente.addActionListener(e -> {
+            // Primero se intenta buscar el cliente; si no existe, se ofrece registrarlo.
             String doc = txtBuscarDoc.getText().trim();
             if (doc.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Ingrese una Cédula o NIT.");
@@ -622,6 +644,7 @@ private JPanel crearPanelProductos() {
                 int idCliente = (clienteActualFacturacion != null) ? clienteActualFacturacion.getId() : 1; 
                 int idProducto = Integer.parseInt(((String)cmbPosProductos.getSelectedItem()).split(" - ")[0]);
                 
+                // El controlador valida stock, calcula extras, descuenta inventario y registra la venta.
                 double totalFinal = controlador.procesarVenta(idCliente, idProducto, ordenTemporal);
                 
                 JOptionPane.showMessageDialog(this, "✅ Venta Exitosa!\nTotal pagado: $" + totalFinal + "\nEl inventario ha sido descontado.");
@@ -656,6 +679,7 @@ private JPanel crearPanelProductos() {
     }
 
     private void actualizarComboPosExtras() {
+        // Cualquier ingrediente disponible puede agregarse como extra en la orden.
         if (cmbPosExtras != null) {
             cmbPosExtras.removeAllItems();
             for (Ingrediente i : controlador.obtenerIngredientes()) {
@@ -675,6 +699,7 @@ private JPanel crearPanelProductos() {
     }
 
     private void mostrarDialogoRegistroCliente(String documentoIngresado) {
+        // Registro rapido desde el POS cuando la identificacion no fue encontrada.
         JPanel pnlRegistro = new JPanel(new GridLayout(5, 2, 5, 5));
         
         JComboBox<String> cmbTipoCli = new JComboBox<>(new String[]{"Persona Natural", "Empresa"});
@@ -753,6 +778,7 @@ private JPanel crearPanelProductos() {
         tablaHistorial.getColumnModel().getColumn(3).setPreferredWidth(300); 
 
         btnRefrescar.addActionListener(e -> {
+            // Se vuelve a consultar la base para reflejar las ventas mas recientes.
             modeloHistorial.setRowCount(0);
             for (String[] fila : controlador.obtenerHistorialVentas()) {
                 modeloHistorial.addRow(fila);

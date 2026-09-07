@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+// Implementacion JDBC para registrar ventas y consultar su historial.
 public class VentaDAOImpl implements IVentaDAO {
     private Connection conexion;
 
@@ -11,11 +12,13 @@ public class VentaDAOImpl implements IVentaDAO {
 
     @Override
     public boolean registrarVenta(int idCliente, int idProducto, double total, Map<Integer, Integer> recetaFinal) {
+        // La venta tiene una cabecera y varias filas de detalle asociadas por id_venta.
         String sqlVenta = "INSERT INTO ventas (id_cliente, total) VALUES (?, ?)";
         // Inyectamos el id_producto para saber qué compró
         String sqlDetalle = "INSERT INTO detalle_ventas (id_venta, id_producto, id_ingrediente, cantidad_usada, subtotal_extra) VALUES (?, ?, ?, ?, 0)";
         
         try {
+            // La venta y su detalle deben conservarse juntos para que el historial sea consistente.
             conexion.setAutoCommit(false);
             int idVenta = 0;
             
@@ -39,6 +42,7 @@ public class VentaDAOImpl implements IVentaDAO {
             conexion.commit();
             return true;
         } catch (SQLException e) {
+            // Evita dejar una venta sin detalle si falla alguno de los INSERT.
             try { conexion.rollback(); } catch (Exception ex) {}
             return false;
         } finally {
@@ -48,6 +52,7 @@ public class VentaDAOImpl implements IVentaDAO {
 
     @Override
     public List<String[]> obtenerHistorialVentas() {
+        // La consulta combina cliente, producto e ingredientes para formar una fila visible en la tabla.
         List<String[]> historial = new ArrayList<>();
         
         // Magia de MySQL: GROUP_CONCAT agrupa los ingredientes en un solo texto separado por comas
