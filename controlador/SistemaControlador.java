@@ -17,6 +17,7 @@ import persistencia.IVentaDAO;
 import java.util.List;
 import java.util.Map;
 
+// Capa intermedia que aplica reglas de negocio y coordina la vista con los DAO.
 public class SistemaControlador {
     
     private IIngredienteDAO ingredienteDAO;
@@ -25,6 +26,7 @@ public class SistemaControlador {
     private IVentaDAO ventaDAO;
 
     public SistemaControlador() {
+        // El controlador coordina los DAO y mantiene la vista independiente de SQL.
         this.ingredienteDAO = new IngredienteDAOImpl();
         this.productoDAO = new ProductoDAOImpl();
         this.clienteDAO = new ClienteDAOImpl(); 
@@ -71,6 +73,7 @@ public class SistemaControlador {
     public boolean registrarProductoConReceta(String nombre, String categoria, double precioBase, Map<Integer, Integer> recetaIdsCantidades) {
         Producto nuevoProducto = new Producto(0, nombre, categoria, precioBase);
 
+        // La vista envia IDs; aqui se convierten en objetos Ingrediente antes de persistir.
         if (recetaIdsCantidades != null && !recetaIdsCantidades.isEmpty()) {
             for (Map.Entry<Integer, Integer> entry : recetaIdsCantidades.entrySet()) {
                 Ingrediente ing = ingredienteDAO.obtenerPorId(entry.getKey());
@@ -129,6 +132,8 @@ public class SistemaControlador {
     }
 
     public double procesarVenta(int idCliente, int idProducto, Map<Integer, Integer> recetaFinal) throws Exception {
+        // Primero se valida toda la orden y se calcula el total para no descontar stock
+        // de una venta que podria ser rechazada por falta de existencias.
         Producto productoBase = productoDAO.listar().stream()
             .filter(p -> p.getId() == idProducto)
             .findFirst()
@@ -158,6 +163,7 @@ public class SistemaControlador {
             }
         }
 
+        // Una vez validada la orden, se descuenta el inventario y se registra la venta.
         for (Map.Entry<Integer, Integer> entry : recetaFinal.entrySet()) {
             Ingrediente ingBD = ingredienteDAO.obtenerPorId(entry.getKey());
             ingBD.setStock(ingBD.getStock() - entry.getValue());

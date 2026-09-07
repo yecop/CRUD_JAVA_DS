@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+// Implementacion JDBC para productos y la tabla intermedia de sus recetas.
 public class ProductoDAOImpl implements IProductoDAO {
     private Connection conexion;
     private IIngredienteDAO ingredienteDAO; 
@@ -19,10 +20,12 @@ public class ProductoDAOImpl implements IProductoDAO {
 
     @Override
     public boolean insertar(Producto producto) {
+        // Se insertan primero los datos del producto para obtener su ID generado.
         String sqlProducto = "INSERT INTO productos (nombre, categoria, precio_base) VALUES (?, ?, ?)";
         String sqlReceta = "INSERT INTO receta_producto (id_producto, id_ingrediente, cantidad) VALUES (?, ?, ?)";
         
         try {
+            // Producto y receta forman una sola operacion: ambos se guardan o ninguno.
             conexion.setAutoCommit(false); // Iniciar transacción
 
             int idProductoGenerado = 0;
@@ -48,9 +51,10 @@ public class ProductoDAOImpl implements IProductoDAO {
                 psReceta.executeBatch();
             }
 
-            conexion.commit(); 
+            conexion.commit(); // Confirma el producto y todas sus filas de receta.
             return true;
         } catch (SQLException e) {
+            // Si falla cualquiera de los INSERT, se deshacen tambien los anteriores.
             try { conexion.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
             System.err.println("Error al insertar producto y receta: " + e.getMessage());
             return false;
@@ -61,6 +65,7 @@ public class ProductoDAOImpl implements IProductoDAO {
 
     @Override
     public List<Producto> listar() {
+        // Cada producto se carga junto con los ingredientes que forman su receta.
         List<Producto> lista = new ArrayList<>();
         String sql = "SELECT * FROM productos";
         
@@ -76,6 +81,7 @@ public class ProductoDAOImpl implements IProductoDAO {
     }
 
     private void cargarRecetaAProducto(Producto p) {
+        // La tabla receta_producto relaciona un producto con cantidades de ingredientes.
         String sql = "SELECT id_ingrediente, cantidad FROM receta_producto WHERE id_producto=?";
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
             ps.setInt(1, p.getId());
@@ -92,6 +98,7 @@ public class ProductoDAOImpl implements IProductoDAO {
 
     @Override
     public boolean actualizar(Producto producto) {
+        // Actualizar un producto implica sincronizar sus datos y reemplazar su receta completa.
         String sqlProducto = "UPDATE productos SET nombre=?, categoria=?, precio_base=? WHERE id=?";
         String sqlBorrarRecetaVieja = "DELETE FROM receta_producto WHERE id_producto=?";
         String sqlInsertarRecetaNueva = "INSERT INTO receta_producto (id_producto, id_ingrediente, cantidad) VALUES (?, ?, ?)";
@@ -99,6 +106,7 @@ public class ProductoDAOImpl implements IProductoDAO {
         try {
             conexion.setAutoCommit(false); // Transacción para garantizar consistencia
 
+            // La receta no se modifica parcialmente: se reemplaza completa dentro de la transaccion.
             // 1. Actualizar datos base del producto
             try (PreparedStatement ps = conexion.prepareStatement(sqlProducto)) {
                 ps.setString(1, producto.getNombre());

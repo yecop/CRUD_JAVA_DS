@@ -8,6 +8,7 @@ public class Producto {
     private String categoria;
     private double precioBase;
     
+    // La clave es el ingrediente y el valor indica cuantas unidades requiere la receta.
     private Map<Ingrediente, Integer> recetaBase;
 
     public Producto(int id, String nombre, String categoria, double precioBase) {
@@ -16,6 +17,7 @@ public class Producto {
     }
 
     public void agregarIngredienteAReceta(Ingrediente ing, int cantidad) {
+        // put reemplaza la cantidad si el ingrediente ya estaba incluido en la receta.
         this.recetaBase.put(ing, cantidad);
     }
 

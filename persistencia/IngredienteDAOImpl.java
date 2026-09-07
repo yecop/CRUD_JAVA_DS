@@ -5,6 +5,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+// Implementacion JDBC del acceso a la tabla ingredientes.
 public class IngredienteDAOImpl implements IIngredienteDAO {
     private Connection conexion;
 
@@ -43,6 +44,7 @@ public class IngredienteDAOImpl implements IIngredienteDAO {
 
     @Override
     public boolean actualizar(Ingrediente ing) {
+        // El ID identifica la fila que debe modificarse; los demas campos son nuevos valores.
         String sql = "UPDATE ingredientes SET nombre=?, stock=?, precio_extra=? WHERE id=?";
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
             ps.setString(1, ing.getNombre());
@@ -55,6 +57,7 @@ public class IngredienteDAOImpl implements IIngredienteDAO {
 
     @Override
     public boolean eliminar(int id) {
+        // La base de datos determina si el ingrediente puede eliminarse por sus relaciones.
         String sql = "DELETE FROM ingredientes WHERE id=?";
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
             ps.setInt(1, id);

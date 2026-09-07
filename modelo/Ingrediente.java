@@ -1,5 +1,6 @@
 package modelo;
 
+// Entidad de inventario utilizada directamente por las recetas y las ventas.
 public class Ingrediente {
     private int id;
     private String nombre;
@@ -10,7 +11,9 @@ public class Ingrediente {
         this.id = id; this.nombre = nombre; this.stock = stock; this.precioExtra = precioExtra;
     }
 
+    // Reduce existencias solo cuando hay suficiente inventario disponible.
     public void reducirStock(int cantidad) {
+        // La validacion se mantiene en el modelo para impedir que el stock quede negativo.
         if (this.stock >= cantidad) this.stock -= cantidad;
         else throw new IllegalArgumentException("Sin stock de: " + nombre);
     }
