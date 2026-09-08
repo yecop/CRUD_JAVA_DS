@@ -55,7 +55,7 @@ public class VentaDAOImpl implements IVentaDAO {
         // La consulta combina cliente, producto e ingredientes para formar una fila visible en la tabla.
         List<String[]> historial = new ArrayList<>();
         
-        // Magia de MySQL: GROUP_CONCAT agrupa los ingredientes en un solo texto separado por comas
+        //agrupa los ingredientes en un solo texto separado por comas
         String sql = "SELECT v.id, v.fecha, c.nombre_razon, p.nombre as producto, " +
                      "GROUP_CONCAT(CONCAT(i.nombre, ' (x', dv.cantidad_usada, ')') SEPARATOR ', ') as detalle, " +
                      "v.total " +
@@ -79,7 +79,7 @@ public class VentaDAOImpl implements IVentaDAO {
                     String.valueOf(rs.getInt("id")),
                     rs.getString("fecha"),
                     rs.getString("nombre_razon"),
-                    detallesHtml, // Nueva columna con todo el detalle de la receta
+                    detallesHtml, // todo el detalle de la receta
                     "$" + rs.getDouble("total")
                 });
             }

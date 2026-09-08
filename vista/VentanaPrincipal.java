@@ -336,7 +336,7 @@ private JPanel crearPanelProductos() {
             } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Verifique los datos."); }
         });
 
-        // --- NUEVO: Evento Actualizar Producto ---
+        // Evento Actualizar Producto
         btnActualizarProducto.addActionListener(e -> {
             int fila = tablaProductos.getSelectedRow();
             if (fila >= 0) {
@@ -405,9 +405,9 @@ private JPanel crearPanelProductos() {
         }
     }
 
-    // =========================================================================
-    //                        MÓDULO 3: GESTIÓN DE CLIENTES (NUEVO)
-    // =========================================================================
+    // 
+    //MÓDULO GESTIÓN DE CLIENTES 
+    // 
 
     private JPanel crearPanelClientes() {
         // Construye el CRUD de personas naturales y empresas usando el mismo formulario.
@@ -517,10 +517,10 @@ private JPanel crearPanelProductos() {
         }
     }
 
-    // =========================================================================
-    //                        MÓDULO 4: PUNTO DE VENTA (FACTURACIÓN)
-    // =========================================================================
-    // (Este código es el mismo del POS que funcionaba perfecto en la versión anterior)
+    // 
+    //MÓDULO PUNTO DE VENTA
+    //
+    // 
 
     private JPanel crearPanelFacturacion() {
         // El POS prepara una orden, permite modificarla y finalmente la procesa.
@@ -647,7 +647,7 @@ private JPanel crearPanelProductos() {
                 // El controlador valida stock, calcula extras, descuenta inventario y registra la venta.
                 double totalFinal = controlador.procesarVenta(idCliente, idProducto, ordenTemporal);
                 
-                JOptionPane.showMessageDialog(this, "✅ Venta Exitosa!\nTotal pagado: $" + totalFinal + "\nEl inventario ha sido descontado.");
+                JOptionPane.showMessageDialog(this, "Venta Exitosa!\nTotal pagado: $" + totalFinal + "\nEl inventario ha sido descontado.");
                 
                 ordenTemporal.clear();
                 modeloOrdenActual.setRowCount(0);
@@ -658,7 +658,7 @@ private JPanel crearPanelProductos() {
                 actualizarTablaIngredientes(); 
                 
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "❌ Error en la venta: " + ex.getMessage(), "Error de Stock", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error en la venta: " + ex.getMessage(), "Error de Stock", JOptionPane.ERROR_MESSAGE);
             }
         });
 

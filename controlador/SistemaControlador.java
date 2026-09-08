@@ -33,14 +33,14 @@ public class SistemaControlador {
         this.ventaDAO = new persistencia.VentaDAOImpl();
     }
 
-    // =========================================================================
-    //                        GESTIÓN DE INGREDIENTES
-    // =========================================================================
+    //
+    //GESTIÓN DE INGREDIENTES
+    //
 
     public boolean registrarIngrediente(String nombre, int stock, double precioExtra) throws Exception {
         String nombreLimpio = nombre.trim();
         
-        // 1. Regla de Negocio: Validar que no exista un ingrediente con el mismo nombre (Ignorando mayúsculas/minúsculas)
+        //Regla de Negocio: Validar que no exista un ingrediente con el mismo nombre (Ignorando mayúsculas/minúsculas)
         boolean existe = ingredienteDAO.listar().stream()
             .anyMatch(ing -> ing.getNombre().trim().equalsIgnoreCase(nombreLimpio));
             
@@ -48,7 +48,7 @@ public class SistemaControlador {
             throw new Exception("El ingrediente '" + nombreLimpio + "' ya existe en el inventario.\nUse el botón 'Actualizar' si desea modificar su stock.");
         }
 
-        // 2. Si pasa la validación, se guarda en base de datos
+        //Si pasa la validación, se guarda en base de datos
         Ingrediente nuevo = new Ingrediente(0, nombreLimpio, stock, precioExtra);
         return ingredienteDAO.insertar(nuevo);
     }
@@ -66,9 +66,9 @@ public class SistemaControlador {
         return ingredienteDAO.eliminar(id);
     }
 
-    // =========================================================================
-    //                  GESTIÓN DE PRODUCTOS (CATÁLOGO Y RECETAS)
-    // =========================================================================
+    //
+    //GESTIÓN DE PRODUCTOS
+    // 
 
     public boolean registrarProductoConReceta(String nombre, String categoria, double precioBase, Map<Integer, Integer> recetaIdsCantidades) {
         Producto nuevoProducto = new Producto(0, nombre, categoria, precioBase);
@@ -101,7 +101,7 @@ public class SistemaControlador {
                 }
             }
         }
-        // El DAO se encarga de borrar la receta vieja e insertar esta nueva (Transacción SQL)
+        // El DAO se encarga de borrar la receta vieja e insertar esta nueva
         return productoDAO.actualizar(modificado);
     }
 
@@ -109,9 +109,9 @@ public class SistemaControlador {
         return productoDAO.eliminar(id);
     }
 
-    // =========================================================================
-    //                        GESTIÓN DE CLIENTES Y POS
-    // =========================================================================
+    //
+    //GESTIÓN DE CLIENTES Y POS
+    //
 
     public Cliente buscarClientePos(String identificacion) {
         return clienteDAO.buscarPorIdentificacion(identificacion);

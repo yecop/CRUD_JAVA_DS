@@ -16,9 +16,9 @@ public abstract class Cliente implements Serializable {
     // Cada tipo de cliente presenta sus datos con una identificacion diferente.
     public abstract String obtenerDatosFacturacion();
 
-    // Getters y Setters necesarios
+    // Getters y Setters
     public int getId() { return id; }
-    public void setId(int id) { this.id = id; } // <-- Vital para que MySQL asigne el ID
+    public void setId(int id) { this.id = id; } // MySQL asigna el id
     public String getTelefono() { return telefono; }
     public String getCorreo() { return correo; }
 }

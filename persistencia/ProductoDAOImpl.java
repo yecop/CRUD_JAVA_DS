@@ -107,7 +107,7 @@ public class ProductoDAOImpl implements IProductoDAO {
             conexion.setAutoCommit(false); // Transacción para garantizar consistencia
 
             // La receta no se modifica parcialmente: se reemplaza completa dentro de la transaccion.
-            // 1. Actualizar datos base del producto
+            // Actualizar datos base del producto
             try (PreparedStatement ps = conexion.prepareStatement(sqlProducto)) {
                 ps.setString(1, producto.getNombre());
                 ps.setString(2, producto.getCategoria());
@@ -116,13 +116,13 @@ public class ProductoDAOImpl implements IProductoDAO {
                 ps.executeUpdate();
             }
 
-            // 2. Borrar la receta anterior
+            // Borrar la receta anterior
             try (PreparedStatement psDelete = conexion.prepareStatement(sqlBorrarRecetaVieja)) {
                 psDelete.setInt(1, producto.getId());
                 psDelete.executeUpdate();
             }
 
-            // 3. Insertar la nueva receta actualizada
+            // Insertar la nueva receta actualizada
             try (PreparedStatement psInsert = conexion.prepareStatement(sqlInsertarRecetaNueva)) {
                 for (Map.Entry<Ingrediente, Integer> entry : producto.getRecetaBase().entrySet()) {
                     psInsert.setInt(1, producto.getId());

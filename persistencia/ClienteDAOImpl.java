@@ -87,7 +87,7 @@ public class ClienteDAOImpl implements IClienteDAO {
 
     @Override
     public boolean actualizar(Cliente cliente) {
-        // Ahora sí actualizamos la columna 'tipo' para evitar inconsistencias
+        // actualizamos la columna 'tipo' para evitar inconsistencias
         String sql = "UPDATE clientes SET tipo=?, telefono=?, correo=?, identificacion=?, nombre_razon=? WHERE id=?";
         try (PreparedStatement ps = conexion.prepareStatement(sql)) {
             if (cliente instanceof PersonaNatural) {

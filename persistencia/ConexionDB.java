@@ -8,8 +8,8 @@ import java.sql.SQLException;
 public class ConexionDB {
     private static Connection conexion;
     private static final String URL = "jdbc:mysql://localhost:3306/bd_comidas_rapidas";
-    private static final String USER = "root"; // Cambia si tu usuario es distinto
-    private static final String PASSWORD = "root"; // Cambia si tienes contraseña
+    private static final String USER = "root";
+    private static final String PASSWORD = "root";
 
     // Impide crear objetos de una clase que solo ofrece metodos estaticos.
     private ConexionDB() {}
